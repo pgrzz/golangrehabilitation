@@ -58,7 +58,6 @@ func compareAndSwap(nums []int, i int, length int) {
 		//在存在和右节点交换的场景,检查现在的subNode和另一个节点谁大，大的应该在左边
 		compareAndSwap(nums, subNode, length)
 	}
-
 }
 
 func swap(nums []int, i int, j int) {
