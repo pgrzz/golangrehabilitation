@@ -21,42 +21,23 @@ func FindKthLargest(nums []int, k int) int {
 
 // 默认的肯定是左边会比右边大 构建堆的过程是 从n/2的节点开始判断每一个叶子节点最大值做交换，递归到底层
 func compareAndSwap(nums []int, i int, length int) {
-
-	largest := nums[i]
-	side := 0
-
+	largest := i
 	subNode := 2*i + 1
 	if subNode < length {
-		if nums[subNode] > largest {
-			side = 1
-			largest = nums[subNode]
+		if nums[subNode] > nums[largest] {
+			largest = subNode
 		}
 	}
 	subNode = 2*i + 2
 	if subNode < length {
-		if side == 1 {
-			//判断是否有另外一个节点值大
-			if nums[subNode] > largest {
-				side = 2
-				largest = nums[subNode]
-			}
-		} else {
-			if nums[subNode] > nums[i] {
-				side = 2
-
-			}
+		if nums[subNode] > nums[largest] {
+			largest = subNode
 		}
 	}
-	//判断side
-	if side == 1 {
-		subNode = 2*i + 1
-	} else if side == 2 {
-		subNode = 2*i + 2
-	}
-	if side != 0 {
-		swap(nums, i, subNode)
+	if largest != i {
+		swap(nums, i, largest)
 		//在存在和右节点交换的场景,检查现在的subNode和另一个节点谁大，大的应该在左边
-		compareAndSwap(nums, subNode, length)
+		compareAndSwap(nums, largest, length)
 	}
 }
 
