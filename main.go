@@ -1,26 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"golangrehabilitation/mypackage"
 )
 
 func main() {
 
-	// matrix := [][]int{
-	// 	{5, 1, 9, 11},
-	// 	{2, 4, 8, 10},
-	// 	{13, 3, 6, 7},
-	// 	{15, 14, 12, 16},
-	// }
-
-	// matrix := [][]int{
-	// 	{1, 2, 3},
-	// 	{4, 5, 6},
-	// 	{7, 8, 9},
-	// }
-
-	arrays := []int{5, 2, 3, 1}
-
-	mypackage.SortArray(arrays)
+	// nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3
+	nums1 := []int{4, 0, 0, 0, 0, 0}
+	m := 1
+	nums2 := []int{1, 2, 3, 5, 6}
+	n := 5
+	mypackage.Merge(nums1, m, nums2, n)
+	fmt.Println(nums1)
 
 }

@@ -2,6 +2,7 @@ package mypackage
 
 const threshold = 16
 
+// https://leetcode.cn/problems/sort-an-array/
 func SortArray(nums []int) []int {
 	return quickSort(nums)
 }
