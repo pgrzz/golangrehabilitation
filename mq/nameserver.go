@@ -29,8 +29,7 @@ func (n *NameServer) GetBrokerBytopic(topic string) (Broker, error) {
 	return Broker{}, BrokerNotFoundError{Topic: topic}
 }
 
-//broker注册到注册中心
-
+// broker注册到注册中心,ignore  fail
 func (n *NameServer) register(topic string, b Broker) {
 	n.topicBroker.Store(topic, b)
 }

@@ -29,7 +29,7 @@ type Store struct {
 // header  offset 8 messageLength 8
 type topicStore struct {
 	topic         string
-	offset        int64 //    1024 1k * 1024 1m * 1024 1g
+	offset        int64 // 1024 1k * 1024 1m * 1024 1g
 	messageLength int64
 	version       int64 // after offset>thresshold(1G) 64 new topic will version+1 and offset unSubmitOffset clean to 0
 }
@@ -47,6 +47,7 @@ type ReaderFail struct {
 // 偏移量不做清0 version 的版本是这样计算的 offset&threshold 取余操作
 // 当offset+messageLength>threshold 时去新建一个覆盖当前的file
 // 如果Store不做持久化操作那么断电后就没有可用性了
+// 如果想要实现容错，那么就需要增加topicFile的容错 类似一个topic 对应到 topicFile1,topicFile2 ,
 func NewStore2() *Store {
 	p := &Store{}
 
@@ -84,6 +85,7 @@ func (s *Store) Register(t topicStore) (bool, error) {
 	if err != nil {
 		f := &topicFile{f: tempFile, ts: t}
 		s.topicFiles.Store(t.topic, f)
+		s.checkpoint()
 		return true, nil
 	}
 	return false, err
@@ -110,7 +112,7 @@ func (s *Store) ReCreateTopicfile(t topicStore) (*topicFile, error) {
 
 		//更新主表 定义
 		//直接将内存中的值flush到磁盘
-		s.flush()
+		s.checkpoint()
 
 		//异步删除对应的块
 		oldFilePath := fileIndexPre + t.topic + strconv.FormatInt(oldVersion, 10)
@@ -132,7 +134,7 @@ func deleteTopicfile(filePath string) {
 // 同步内存数据到磁盘
 // 这里有一个比较大问题，当topic很多的话这种偷懒的方式会造成明显的数据不一致同时保持meta最新的成本很高。
 // 合适的方式是对更新部分做增量更新操作，
-func (s *Store) flush() {
+func (s *Store) checkpoint() {
 
 	s.l.Lock()
 	defer s.l.Unlock()
@@ -179,7 +181,7 @@ func (e ReaderFail) Error() string {
 }
 
 // offset 在初始化的时候就做好偏移, offset
-func (s *Store) ReadTopic(topic string) ([]byte, error) {
+func (s *Store) ReadMessage(topic string) ([]byte, error) {
 
 	value, ok := s.topicFiles.Load(topic)
 
@@ -205,7 +207,7 @@ func (s *Store) ReadTopic(topic string) ([]byte, error) {
 
 }
 
-// 写入消息并返回偏移量
+// 写入消息并返回偏移量,这个偏移就是这一条message的物理位置，
 func (s *Store) WriteMessage(topic string, message []byte) (int64, error) {
 
 	value, ok := s.topicFiles.Load(topic)
@@ -225,7 +227,7 @@ func (s *Store) WriteMessage(topic string, message []byte) (int64, error) {
 
 	tf.mu.Lock()
 	defer tf.mu.Unlock()
-	//repete seek
+	// append write
 	offset, err := tf.f.Seek(0, os.SEEK_END)
 	if err != nil {
 		return 0, err
